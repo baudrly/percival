@@ -1,337 +1,275 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Genome Reassembly Tool</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="favicon.ico">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Percival</title>
+<meta name="description" content="Manual genome scaffolding and curation from Hi-C contact maps, in the browser.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2314202B'/%3E%3Cpath d='M6 6h8v8H6zM14 14h6v6h-6zM20 20h6v6h-6z' fill='%23E8483B'/%3E%3Cpath d='M14 6h4v4h-4zM6 14h4v4H6z' fill='%23E8483B' opacity='.45'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-    <div class="app-container">
-        <header class="header">
-            <h1>🧬 Genome Reassembly Tool</h1>
-        </header>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-select" viewBox="0 0 20 20"><path d="M4 3v14M16 3v14M4 3h3M4 17h3M16 3h-3M16 17h-3" /></symbol>
+  <symbol id="i-cut" viewBox="0 0 20 20"><circle cx="5.5" cy="14.5" r="2.5"/><circle cx="14.5" cy="14.5" r="2.5"/><path d="M7.3 12.7 15 3M12.7 12.7 5 3"/></symbol>
+  <symbol id="i-join" viewBox="0 0 20 20"><path d="M8 6H5.5a4 4 0 0 0 0 8H8M12 6h2.5a4 4 0 0 1 0 8H12M7 10h6"/></symbol>
+  <symbol id="i-move" viewBox="0 0 20 20"><path d="M3 10h14M6 7l-3 3 3 3M14 7l3 3-3 3M10 4v3M10 13v3"/></symbol>
+  <symbol id="i-invert" viewBox="0 0 20 20"><path d="M4 7h10l-3-3M16 13H6l3 3"/></symbol>
+  <symbol id="i-unplace" viewBox="0 0 20 20"><path d="M3 13v3h14v-3M10 3v9M6.5 6.5 10 3l3.5 3.5"/></symbol>
+  <symbol id="i-excise" viewBox="0 0 20 20"><path d="M6 3v14M14 3v14M2 10h2M16 10h2" /><path d="M8 7h4v6H8z"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 20 20"><path d="M7 5 3 9l4 4M3 9h9a5 5 0 0 1 0 10h-2"/></symbol>
+  <symbol id="i-redo" viewBox="0 0 20 20"><path d="m13 5 4 4-4 4M17 9H8a5 5 0 0 0 0 10h2"/></symbol>
+  <symbol id="i-open" viewBox="0 0 20 20"><path d="M2.5 5.5v10h15v-8h-7l-2-2z"/></symbol>
+  <symbol id="i-save" viewBox="0 0 20 20"><path d="M10 3v10M6 9l4 4 4-4M3 15v2h14v-2"/></symbol>
+  <symbol id="i-fit" viewBox="0 0 20 20"><path d="M3 8V3h5M12 3h5v5M17 12v5h-5M8 17H3v-5"/></symbol>
+  <symbol id="i-zoom" viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5"/><path d="m12.5 12.5 4.5 4.5M6.5 8.5h4M8.5 6.5v4"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 20 20"><path d="M10 2.5v4M10 13.5v4M2.5 10h4M13.5 10h4M5 5l2 2M13 13l2 2M5 15l2-2M13 7l2-2"/></symbol>
+  <symbol id="i-play" viewBox="0 0 20 20"><path d="M6 4v12l10-6z"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 20 20"><path d="M5 5h10v10H5z"/></symbol>
+  <symbol id="i-help" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.5"/><path d="M7.8 7.8a2.3 2.3 0 1 1 3.2 2.1c-.6.3-1 .8-1 1.4v.6M10 14.6v.2"/></symbol>
+  <symbol id="i-flip" viewBox="0 0 20 20"><path d="M10 3v14M7 6 4 10l3 4M13 6l3 4-3 4"/></symbol>
+  <symbol id="i-close" viewBox="0 0 20 20"><path d="m5 5 10 10M15 5 5 15"/></symbol>
+</svg>
 
-        <nav class="tab-nav">
-            <button class="tab-btn active" data-tab="data">📊 Data Input</button>
-            <button class="tab-btn" data-tab="viz">🔬 Visualization & Editing</button>
-            <button class="tab-btn" data-tab="export">💾 Export</button>
-        </nav>
-
-        <!-- Data Input Tab -->
-        <div class="tab-content active" id="data-tab">
-            <div class="data-tab">
-                <div class="data-grid">
-                    <div class="data-panel">
-                        <h2>Reference Genome (FASTA)</h2>
-                        <div class="input-tabs">
-                            <button class="input-tab-btn active" data-input="fasta-upload">Upload</button>
-                            <button class="input-tab-btn" data-input="fasta-paste">Paste</button>
-                            <button class="input-tab-btn" data-input="fasta-url">URL</button>
-                            <button class="input-tab-btn" data-input="fasta-demo">Demo</button>
-                        </div>
-                        <div class="input-content active" id="fasta-upload">
-                            <div class="file-input-wrapper">
-                                <input type="file" id="fasta-file" class="file-input" accept=".fasta,.fa,.fna,.txt">
-                                <label for="fasta-file" class="file-label">
-                                    <div>📁 Choose FASTA file</div>
-                                    <div style="font-size: 0.9rem; color: var(--text-tertiary); margin-top: 0.5rem;">or drag and drop here</div>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="input-content" id="fasta-paste">
-                            <textarea class="textarea-input" placeholder="Paste FASTA content here..."></textarea>
-                        </div>
-                        <div class="input-content" id="fasta-url">
-                            <div class="url-input-group">
-                                <input type="url" class="url-input" placeholder="Enter FASTA URL...">
-                                <button class="btn">Fetch</button>
-                            </div>
-                        </div>
-                        <div class="input-content" id="fasta-demo">
-                            <button class="btn demo-btn">Load Demo Genome</button>
-                        </div>
-                    </div>
-
-                    <div class="data-panel">
-                        <h2>Contact Map (BED/Matrix)</h2>
-                        <div class="input-tabs">
-                            <button class="input-tab-btn active" data-input="bed-upload">Upload</button>
-                            <button class="input-tab-btn" data-input="bed-paste">Paste</button>
-                            <button class="input-tab-btn" data-input="bed-url">URL</button>
-                            <button class="input-tab-btn" data-input="bed-demo">Demo</button>
-                        </div>
-                        <div class="input-content active" id="bed-upload">
-                            <div class="file-input-wrapper">
-                                <input type="file" id="bed-file" class="file-input" accept=".bed,.txt,.gz,.zip">
-                                <label for="bed-file" class="file-label">
-                                    <div>📊 Choose BED/Matrix file</div>
-                                    <div style="font-size: 0.9rem; color: var(--text-tertiary); margin-top: 0.5rem;">or drag and drop here</div>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="input-content" id="bed-paste">
-                            <textarea class="textarea-input" placeholder="Paste BED/Matrix content here..."></textarea>
-                        </div>
-                        <div class="input-content" id="bed-url">
-                            <div class="url-input-group">
-                                <input type="url" class="url-input" placeholder="Enter BED/Matrix URL...">
-                                <button class="btn">Fetch</button>
-                            </div>
-                        </div>
-                        <div class="input-content" id="bed-demo">
-                            <button class="btn demo-btn">Load Demo Contact Map</button>
-                        </div>
-                    </div>
-
-                    <div class="process-section">
-                        <div class="status-bar">
-                            <div class="status-item" id="fasta-status">
-                                <span class="status-icon">⚪</span>
-                                <span>FASTA: Not loaded</span>
-                            </div>
-                            <div class="status-item" id="bed-status">
-                                <span class="status-icon">⚪</span>
-                                <span>Contact Map: Not loaded</span>
-                            </div>
-                        </div>
-                        <button class="btn process-btn" id="process-btn">🚀 Process Data</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Visualization Tab -->
-        <div class="tab-content" id="viz-tab">
-            <div class="viz-tab">
-                <aside class="viz-sidebar">
-                    <div class="sidebar-tabs">
-                        <button class="sidebar-tab active" data-sidebar="tools">Tools</button>
-                        <button class="sidebar-tab" data-sidebar="history">History</button>
-                        <button class="sidebar-tab" data-sidebar="settings">Settings</button>
-                    </div>
-                    
-                    <div class="sidebar-content">
-                        <!-- Tools Panel -->
-                        <div class="sidebar-panel active" id="tools-panel">
-                            <div class="sidebar-section">
-                                <h3>Editing Tools</h3>
-                                <div class="tool-grid">
-                                    <button class="tool-btn active" data-tool="select">
-                                        <span class="tool-icon">⬚</span>
-                                        <span class="tool-name">Select</span>
-                                    </button>
-                                    <button class="tool-btn" data-tool="move">
-                                        <span class="tool-icon">↔️</span>
-                                        <span class="tool-name">Move</span>
-                                    </button>
-                                    <button class="tool-btn" data-tool="invert">
-                                        <span class="tool-icon">🔄</span>
-                                        <span class="tool-name">Invert</span>
-                                    </button>
-                                    <button class="tool-btn" data-tool="delete">
-                                        <span class="tool-icon">🗑️</span>
-                                        <span class="tool-name">Delete</span>
-                                    </button>
-                                    <button class="tool-btn" data-tool="duplicate">
-                                        <span class="tool-icon">📋</span>
-                                        <span class="tool-name">Duplicate</span>
-                                    </button>
-                                    <button class="tool-btn" data-tool="split">
-                                        <span class="tool-icon">✂️</span>
-                                        <span class="tool-name">Split</span>
-                                    </button>
-                                    <button class="tool-btn" data-tool="fuse">
-                                        <span class="tool-icon">🔗</span>
-                                        <span class="tool-name">Fuse</span>
-                                    </button>
-                                    <button class="tool-btn" data-tool="swap">
-                                        <span class="tool-icon">🔀</span>
-                                        <span class="tool-name">Swap</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="sidebar-section">
-                                <h3>Selected Region</h3>
-                                <div class="region-info" id="region-info">
-                                    <p style="color: var(--text-tertiary);">No region selected</p>
-                                </div>
-                                <div class="operation-controls" id="operation-controls" style="display: none;">
-                                    <button class="btn control-btn confirm" id="confirm-op">✓ Confirm</button>
-                                    <button class="btn control-btn cancel" id="cancel-op">✗ Cancel</button>
-                                    <button class="btn control-btn reset" id="reset-op">↺ Reset</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- History Panel -->
-                        <div class="sidebar-panel" id="history-panel" style="display: none;">
-                            <div class="sidebar-section">
-                                <h3>Edit History</h3>
-                                <div class="history-list" id="history-list">
-                                    <!-- History items will be added here -->
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Settings Panel -->
-                        <div class="sidebar-panel" id="settings-panel" style="display: none;">
-                            <div class="sidebar-section">
-                                <h3>Visualization Settings</h3>
-                                
-                                <div class="settings-group">
-                                    <label>Transform</label>
-                                    <select id="transform-select">
-                                        <option value="linear">Linear</option>
-                                        <option value="log" selected>Log</option>
-                                        <option value="log2">Log2</option>
-                                        <option value="sqrt">Square Root</option>
-                                    </select>
-                                </div>
-
-                                <div class="settings-group">
-                                    <label>Color Scheme</label>
-                                    <select id="colorscheme-select">
-                                        <option value="viridis">Viridis</option>
-                                        <option value="plasma">Plasma</option>
-                                        <option value="inferno">Inferno</option>
-                                        <option value="turbo" selected>Turbo</option>
-                                        <option value="hot">Hot</option>
-                                        <option value="cool">Cool</option>
-                                    </select>
-                                </div>
-
-                                <div class="settings-group">
-                                    <label>Min Value: <span id="vmin-label">0</span></label>
-                                    <input type="range" id="vmin-slider" min="0" max="100" value="0">
-                                </div>
-
-                                <div class="settings-group">
-                                    <label>Max Value: <span id="vmax-label">100</span></label>
-                                    <input type="range" id="vmax-slider" min="1" max="1000" value="100">
-                                </div>
-
-                                <div class="settings-group">
-                                    <div class="checkbox-group">
-                                        <input type="checkbox" id="percentile-clip">
-                                        <label for="percentile-clip">Auto clip (95th percentile)</label>
-                                    </div>
-                                </div>
-
-                                <div class="settings-group">
-                                    <div class="checkbox-group">
-                                        <input type="checkbox" id="grid-toggle" checked>
-                                        <label for="grid-toggle">Show chromosome boundaries</label>
-                                    </div>
-                                </div>
-
-                                <div class="settings-group">
-                                    <div class="checkbox-group">
-                                        <input type="checkbox" id="diagonal-toggle">
-                                        <label for="diagonal-toggle">Show diagonal</label>
-                                    </div>
-                                </div>
-
-                                <div class="settings-group">
-                                    <label>Gamma: <span id="gamma-label">1.0</span></label>
-                                    <input type="range" id="gamma-slider" min="0.1" max="3.0" step="0.1" value="1.0">
-                                </div>
-
-                                <div class="settings-group">
-                                    <label>Min Chromosome Size: <span id="min-chr-label">10</span> bins</label>
-                                    <input type="range" id="min-chr-size" min="1" max="50" value="10">
-                                </div>
-
-                                <button class="btn" id="apply-settings" style="width: 100%; margin-top: 1rem;">Apply Settings</button>
-                            </div>
-                        </div>
-                    </div>
-                </aside>
-
-                <main class="viz-main">
-                    <div class="viz-header">
-                        <h2>Contact Map Visualization</h2>
-                        <div class="score-display">
-                            <div class="score-item">
-                                <div class="score-label">Current Score</div>
-                                <div class="score-value" id="current-score">0.00</div>
-                            </div>
-                            <div class="score-item">
-                                <div class="score-label">Best Score</div>
-                                <div class="score-value" id="best-score" style="color: var(--accent);">0.00</div>
-                            </div>
-                            <div class="score-item">
-                                <div class="score-label">Alpha</div>
-                                <div class="score-value" id="alpha-value" style="color: var(--warning);">-1.00</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="viz-container">
-                        <div class="heatmap-panel">
-                            <div class="heatmap-wrapper">
-                                <canvas id="heatmap-canvas"></canvas>
-                                <div class="selection-overlay" id="selection-overlay"></div>
-                                <div class="hover-info" id="hover-info">
-                                    <div class="hover-coords"></div>
-                                    <div class="hover-value"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="ps-panel">
-                            <h3>P(s) Distribution</h3>
-                            <canvas id="ps-plot"></canvas>
-                            <div style="text-align: center; margin-top: 1rem; font-family: 'Consolas', monospace;">
-                                P(s) ~ s<sup id="ps-alpha">-1.0</sup>
-                            </div>
-                        </div>
-                    </div>
-                </main>
-            </div>
-        </div>
-
-        <!-- Export Tab -->
-        <div class="tab-content" id="export-tab">
-            <div class="export-tab">
-                <div class="export-section">
-                    <h2>Export Options</h2>
-                    <div class="export-grid">
-                        <button class="export-btn" id="export-bed">
-                            <span class="export-icon">📊</span>
-                            <span>Export BED</span>
-                        </button>
-                        <button class="export-btn" id="export-modifications">
-                            <span class="export-icon">📝</span>
-                            <span>Export Modifications</span>
-                        </button>
-                        <button class="export-btn" id="export-fasta">
-                            <span class="export-icon">🧬</span>
-                            <span>Export FASTA</span>
-                        </button>
-                        <button class="export-btn" id="export-matrix">
-                            <span class="export-icon">🔢</span>
-                            <span>Export Matrix</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="export-section">
-                    <h2>Summary Statistics</h2>
-                    <div id="export-summary">
-                        <p style="color: var(--text-tertiary);">No data processed yet</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="app" id="app">
+  <header class="bar">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"></span>
+      <span class="wordmark">Percival</span>
+      <button class="dataset" id="dataset-name" type="button" title="Load data">Demo</button>
     </div>
 
-    <div class="loading-overlay" id="loading" style="display: none;">
-        <div class="loading-spinner"></div>
+    <div class="group" role="group" aria-label="History">
+      <button class="icon" id="undo" type="button" title="Undo (Ctrl+Z)" aria-label="Undo"><svg><use href="#i-undo"/></svg></button>
+      <button class="icon" id="redo" type="button" title="Redo (Ctrl+Shift+Z)" aria-label="Redo"><svg><use href="#i-redo"/></svg></button>
     </div>
 
-    <script src="script.js"></script>
+    <div class="group tools" role="radiogroup" aria-label="Map tool">
+      <button class="tool" data-tool="select" type="button" role="radio" aria-checked="true" title="Select a range (V)"><svg><use href="#i-select"/></svg><span>Select</span></button>
+      <button class="tool" data-tool="cut" type="button" role="radio" aria-checked="false" title="Break a scaffold (K)"><svg><use href="#i-cut"/></svg><span>Break</span></button>
+      <button class="tool" data-tool="join" type="button" role="radio" aria-checked="false" title="Join across a break (J)"><svg><use href="#i-join"/></svg><span>Join</span></button>
+    </div>
+
+    <div class="group actions" role="group" aria-label="Edit the selection">
+      <button class="act" id="act-invert" type="button" title="Reverse the selection (I)"><svg><use href="#i-invert"/></svg><span>Invert</span></button>
+      <button class="act" id="act-move" type="button" title="Move the selection, then click where it goes (M)"><svg><use href="#i-move"/></svg><span>Move</span></button>
+      <button class="act" id="act-excise" type="button" title="Make the selection its own scaffold (E)"><svg><use href="#i-excise"/></svg><span>Excise</span></button>
+      <button class="act" id="act-unplace" type="button" title="Take the selection out of the assembly (Delete)"><svg><use href="#i-unplace"/></svg><span>Unplace</span></button>
+    </div>
+
+    <div class="score" id="score" title="Change in log-likelihood of the contacts since the starting layout">
+      <span class="score-value" id="score-value">0</span>
+      <span class="score-label">Δ log-likelihood</span>
+    </div>
+
+    <dl class="facts" id="facts"></dl>
+
+    <div class="group end">
+      <button class="icon" id="help" type="button" title="Shortcuts and method (?)" aria-label="Shortcuts and method"><svg><use href="#i-help"/></svg></button>
+      <button class="btn ghost" id="open-load" type="button"><svg><use href="#i-open"/></svg><span>Load</span></button>
+      <button class="btn" id="open-export" type="button"><svg><use href="#i-save"/></svg><span>Export</span></button>
+    </div>
+  </header>
+
+  <aside class="scaffolds" aria-label="Scaffolds">
+    <div class="pane-head">
+      <h2>Scaffolds</h2>
+      <span class="count" id="scaf-count"></span>
+    </div>
+    <ol class="scaf-list" id="scaf-list"></ol>
+  </aside>
+
+  <main class="stage" id="stage">
+    <div class="corner">
+      <button class="icon small" id="fit" type="button" title="Show the whole map (0)" aria-label="Show the whole map"><svg><use href="#i-fit"/></svg></button>
+    </div>
+    <canvas class="tracks" id="tracks" aria-label="Annotation tracks"></canvas>
+    <canvas class="ribbon" id="ribbon" aria-hidden="true"></canvas>
+    <div class="map-wrap" id="map-wrap">
+      <canvas class="map" id="map" tabindex="0" aria-label="Contact map. Drag to select, scroll to zoom, right-drag to pan."></canvas>
+      <div class="tip" id="tip" hidden></div>
+      <div class="mode-banner" id="mode-banner" hidden></div>
+    </div>
+  </main>
+
+  <aside class="panel" aria-label="Analysis">
+    <div class="tabs" role="tablist">
+      <button role="tab" type="button" data-tab="hints" aria-selected="true">Hints</button>
+      <button role="tab" type="button" data-tab="fold" aria-selected="false">3D fold</button>
+      <button role="tab" type="button" data-tab="decay" aria-selected="false">Decay</button>
+      <button role="tab" type="button" data-tab="links" aria-selected="false">Links</button>
+      <button role="tab" type="button" data-tab="dots" aria-selected="false">Layout</button>
+      <button role="tab" type="button" data-tab="history" aria-selected="false">History</button>
+    </div>
+
+    <section class="tab" id="tab-hints" role="tabpanel">
+      <div class="tab-head">
+        <p class="lede" id="hint-status">Scanning the layout…</p>
+        <div class="row">
+          <button class="btn small" id="hint-best" type="button"><svg><use href="#i-spark"/></svg><span>Apply best</span></button>
+          <button class="btn small ghost" id="hint-run" type="button"><svg><use href="#i-play"/></svg><span>Apply until none help</span></button>
+        </div>
+      </div>
+      <ol class="hints" id="hints"></ol>
+    </section>
+
+    <section class="tab" id="tab-fold" role="tabpanel" hidden>
+      <div class="tab-head">
+        <p class="lede">Beads placed so that pairs with more contacts sit closer (shortest-path distances and classical multidimensional scaling). Misjoins show up as long stretches between distant territories.</p>
+        <div class="row wrap">
+          <label class="field">Show
+            <select id="fold-scope"><option value="all">Whole assembly</option><option value="scaffold">Scaffold under selection</option></select>
+          </label>
+          <label class="field">Colour
+            <select id="fold-color"><option value="scaffold">Scaffold, light to dark along it</option><option value="origin">Input contig</option><option value="cover">Coverage</option></select>
+          </label>
+        </div>
+      </div>
+      <div class="fold" id="fold"><p class="empty" id="fold-msg">Loading the 3D viewer…</p></div>
+    </section>
+
+    <section class="tab" id="tab-decay" role="tabpanel" hidden>
+      <div class="tab-head">
+        <p class="lede" id="decay-lede"></p>
+        <div class="row"><button class="btn small ghost" id="refit" type="button">Refit to current layout</button></div>
+      </div>
+      <canvas class="plot" id="decay"></canvas>
+      <div class="legend" id="decay-legend"></div>
+    </section>
+
+    <section class="tab" id="tab-links" role="tabpanel" hidden>
+      <div class="tab-head">
+        <p class="lede">Scaffolds around the circle, ribbons for contacts between them above the background rate. Strong ribbons are candidate joins. Click one to look at that block of the map.</p>
+      </div>
+      <canvas class="plot square" id="links"></canvas>
+    </section>
+
+    <section class="tab" id="tab-dots" role="tabpanel" hidden>
+      <div class="tab-head">
+        <p class="lede" id="dots-lede">Each bin's position in the current assembly (across) against its position in the input (down).</p>
+        <div class="row" id="dots-truth-row" hidden>
+          <label class="check"><input type="checkbox" id="dots-truth"> Compare with the simulated truth</label>
+        </div>
+      </div>
+      <canvas class="plot square" id="dots"></canvas>
+      <div class="legend"><span class="key fwd"></span>Same orientation <span class="key rev"></span>Reversed</div>
+    </section>
+
+    <section class="tab" id="tab-history" role="tabpanel" hidden>
+      <canvas class="plot spark" id="spark"></canvas>
+      <ol class="history" id="history"></ol>
+    </section>
+  </aside>
+
+  <footer class="status">
+    <span class="readout" id="readout">Hover the map for coordinates</span>
+    <div class="view-controls">
+      <label class="field inline">Values
+        <select id="mode"><option value="balanced">Balanced</option><option value="raw">Raw counts</option><option value="oe">Observed / expected</option></select>
+      </label>
+      <label class="field inline">Scale
+        <select id="scale"><option value="log">Log</option><option value="linear">Linear</option></select>
+      </label>
+      <label class="field inline">Contrast
+        <input type="range" id="contrast" min="0" max="100" value="62">
+      </label>
+      <label class="field inline">Colours
+        <select id="cmap"><option value="auto">Match theme</option><option value="ligation">Ligation red</option><option value="ember">Ember</option><option value="viridis">Viridis</option><option value="ice">Ice</option></select>
+      </label>
+    </div>
+  </footer>
+</div>
+
+<div class="busy" id="busy" hidden><div class="busy-card"><span class="spinner" aria-hidden="true"></span><span id="busy-text">Working…</span></div></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<dialog class="dialog" id="load-dialog" aria-labelledby="load-title">
+  <form method="dialog" class="dialog-body" id="load-form">
+    <header class="dialog-head">
+      <h2 id="load-title">Load data</h2>
+      <button class="icon" value="cancel" aria-label="Close"><svg><use href="#i-close"/></svg></button>
+    </header>
+    <div class="demos">
+      <button class="demo" type="button" data-demo="curation">
+        <strong>Draft with planted errors</strong>
+        <span>Four chromosomes in five drafts with inversions, swaps, a translocation and a misjoin to find and fix.</span>
+      </button>
+      <button class="demo" type="button" data-demo="scaffolding">
+        <strong>Shuffled contigs</strong>
+        <span>Thirty-four contigs in random order and orientation to scaffold into chromosomes.</span>
+      </button>
+    </div>
+    <label class="drop" id="drop" for="files">
+      <input type="file" id="files" multiple>
+      <strong>Drop files or choose them</strong>
+      <span>Add the contact map and, optionally, its bins and sequences in one go. Gzip and bgzip files are read as they stream.</span>
+    </label>
+    <div class="url-row">
+      <label class="field grow" for="url">Or a URL <input type="url" id="url" placeholder="https://…/contacts.pairs.gz"></label>
+      <button class="btn small ghost" type="button" id="url-add">Add</button>
+    </div>
+    <ul class="staged" id="staged"></ul>
+    <div class="row wrap">
+      <label class="field">Bin size (bp) <input type="number" id="bin-size" value="10000" min="1" step="1"></label>
+      <label class="field">Most bins to show <input type="number" id="max-bins" value="2500" min="200" max="5000" step="100"></label>
+    </div>
+    <details class="formats">
+      <summary>Formats Percival reads</summary>
+      <dl>
+        <dt>Contacts</dt><dd>Dense square matrix; sparse triplets <code>i j count</code> (GRAAL, hicstuff, HiC-Pro <code>.matrix</code>, with or without header); bedgraph2 <code>chr1 s1 e1 chr2 s2 e2 count</code> (cooler dump); 4DN <code>.pairs</code>, binned at the bin size above.</dd>
+        <dt>Bins</dt><dd>BED of bins (HiC-Pro <code>_abs.bed</code>); GRAAL / hicstuff <code>fragments_list.txt</code>.</dd>
+        <dt>Sequences</dt><dd>FASTA, or just lengths as <code>.chrom.sizes</code> / <code>.fai</code>. With a FASTA, the GC track and sequence export are available.</dd>
+        <dt>Layouts</dt><dd>AGP from an earlier scaffolding (YaHS, SALSA, 3D-DNA), or a Percival session file. Added with a map, or on their own to rearrange the map that is open.</dd>
+      </dl>
+    </details>
+    <p class="error" id="load-error" hidden></p>
+    <footer class="dialog-foot">
+      <button class="btn ghost" value="cancel">Cancel</button>
+      <button class="btn" type="button" id="load-go" disabled>Open</button>
+    </footer>
+  </form>
+</dialog>
+
+<dialog class="dialog" id="export-dialog" aria-labelledby="export-title">
+  <form method="dialog" class="dialog-body">
+    <header class="dialog-head">
+      <h2 id="export-title">Export the assembly</h2>
+      <button class="icon" value="cancel" aria-label="Close"><svg><use href="#i-close"/></svg></button>
+    </header>
+    <div class="exports" id="exports"></div>
+  </form>
+</dialog>
+
+<dialog class="dialog" id="help-dialog" aria-labelledby="help-title">
+  <form method="dialog" class="dialog-body prose">
+    <header class="dialog-head">
+      <h2 id="help-title">How Percival works</h2>
+      <button class="icon" value="cancel" aria-label="Close"><svg><use href="#i-close"/></svg></button>
+    </header>
+    <h3>Editing</h3>
+    <table class="keys">
+      <tr><td><kbd>Drag</kbd></td><td>Select a range of bins; edges snap to contig and scaffold ends (hold <kbd>Alt</kbd> for single bins)</td></tr>
+      <tr><td><kbd>Double-click</kbd></td><td>Select the whole scaffold</td></tr>
+      <tr><td><kbd>I</kbd> <kbd>M</kbd> <kbd>E</kbd> <kbd>Del</kbd></td><td>Invert, move, excise, unplace the selection</td></tr>
+      <tr><td><kbd>V</kbd> <kbd>K</kbd> <kbd>J</kbd></td><td>Select, break and join tools</td></tr>
+      <tr><td><kbd>H</kbd></td><td>Apply the best hint</td></tr>
+      <tr><td><kbd>Scroll</kbd> / <kbd>Right-drag</kbd></td><td>Zoom / pan (two fingers on touch screens)</td></tr>
+      <tr><td><kbd>Z</kbd> <kbd>0</kbd></td><td>Zoom to the selection / to the whole map</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>Undo; add <kbd>Shift</kbd> to redo</td></tr>
+    </table>
+    <h3>The score</h3>
+    <p>Each contact count is modelled as Poisson: between bins <i>i</i> and <i>j</i> of the same scaffold, separated by <i>s</i> base pairs, the expected count is <i>b<sub>i</sub> b<sub>j</sub> P(s)</i>; across scaffolds it is <i>b<sub>i</sub> b<sub>j</sub> P<sub>trans</sub></i>. The biases <i>b</i> come from iterative correction (ICE) and <i>P(s)</i> is the contact decay measured on the starting layout, made non-increasing and extended as a power law. The headline number is how much the log-likelihood of all contacts has risen since the start; every hint is ranked by the exact change it would make.</p>
+    <p>This is the likelihood GRAAL and instaGRAAL sample with MCMC, here evaluated exactly after each manual edit. The decay is frozen so scores stay comparable; refit it from the Decay tab once the layout is mostly right.</p>
+    <h3>Tracks</h3>
+    <p>Above the map, top to bottom: scaffolds, the input contig each piece came from (striped when reversed), coverage, GC content when sequences are loaded, and junction support: log<sub>2</sub> of observed over expected contacts across each point. Red troughs are likely misjoins.</p>
+  </form>
+</dialog>
+
+<script src="js/core.js"></script>
+<script src="js/fold3d.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
